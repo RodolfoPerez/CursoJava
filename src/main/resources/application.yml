@@ -1,0 +1,24 @@
+spring:
+  datasources:
+    target:
+      jdbc-url: jdbc:sqlserver://localhost:1434;databaseName=Linsce_Adq_br;encrypt=true;trustServerCertificate=true
+      username: admin
+      password: 8dqvFN920SErXLWz
+      driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      environment: server
+    batch:
+      jdbc:
+        initialize-schema: never
+    informix:
+      origin:
+        jdbc-url: jdbc:informix-sqli://172.29.40.29:1540/catalogo_pos
+        username: bocontrov
+        password: xHJ3%<8uU.=L/svbY
+        driver-class-name: com.informix.jdbc.IfxDriver
+        maximumPoolSize: 150
+        minimumIdle: 2
+        properties:
+          cachePrepStmts: true
+          prepStmtCacheSize: 256
+          prepStmtCacheSqlLimit: 2048
+          useServerPrepStmts: true
