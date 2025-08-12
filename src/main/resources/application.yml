@@ -6,9 +6,6 @@ spring:
       password: 8dqvFN920SErXLWz
       driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
       environment: server
-    batch:
-      jdbc:
-        initialize-schema: never
     informix:
       origin:
         jdbc-url: jdbc:informix-sqli://172.29.40.29:1540/catalogo_pos
@@ -22,3 +19,15 @@ spring:
           prepStmtCacheSize: 256
           prepStmtCacheSqlLimit: 2048
           useServerPrepStmts: true
+      h2:
+        poolName: h2MemoryDatabasePool
+        driverClassName: org.h2.Driver
+        jdbcUrl: jdbc:h2:mem:batchdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        username: sa
+        maximumPoolSize: 150
+        minimumIdle: 2
+    batch:
+      jdbc:
+        initialize-schema: never
+  params:
+    chunk-size: 10000

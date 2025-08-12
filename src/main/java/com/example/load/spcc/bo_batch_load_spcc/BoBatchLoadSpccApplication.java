@@ -8,11 +8,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @Slf4j
 public class BoBatchLoadSpccApplication {
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		SpringApplication.run(BoBatchLoadSpccApplication.class, args);
-		log.info("Ejemplo");
+        SpringApplication.run(BoBatchLoadSpccApplication.class, args);
 
-	}
+    }
 
 }
