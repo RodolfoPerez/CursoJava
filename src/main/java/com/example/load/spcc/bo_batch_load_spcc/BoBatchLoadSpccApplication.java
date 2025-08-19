@@ -21,10 +21,10 @@ public class BoBatchLoadSpccApplication implements ApplicationRunner {
 
 
 
-    private static Job finalExchangeStep1;
-    private static Job finalExchangeStep2;
-    private static Job finalExchangeStepALL;
-    private static JobLauncher jobLauncher;
+    private final Job finalExchangeStep1;
+    private final Job finalExchangeStep2;
+    private final Job finalExchangeStepALL;
+    private final JobLauncher jobLauncher;
 
     public BoBatchLoadSpccApplication(Job finalExchangeStep1,Job finalExchangeStep2,Job finalExchangeStepALL,JobLauncher jobLauncher){
 
