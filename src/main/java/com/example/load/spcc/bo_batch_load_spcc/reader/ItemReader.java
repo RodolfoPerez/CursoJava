@@ -41,10 +41,10 @@ public class ItemReader implements org.springframework.batch.item.ItemReader<Lis
 
         try{
 
-        String sql = String.format("select * from %s where fe_proceso = '%s' and adquirente = %s",tabla,fechaproceso,acquirer);
+        String sql = String.format("select cuenta,referencia,monto,bancoAdquirente from %s where fe_proceso = ?  and adquirente = %s",tabla,acquirer);
         log.info("Query : " + sql);
 
-            return this.jdbcTemplate.queryForList(sql);
+            return this.jdbcTemplate.queryForList(sql,fechaproceso);
 
         } catch (RuntimeException e) {
             log.error("Error al ejecutar el query de select en la tabla {} con adquirente {}",tabla,acquirer);
