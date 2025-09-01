@@ -1,17 +1,32 @@
 spring:
+  sql:
+    init:
+      schema-locations: classpath:org/springframework/batch/core/schema-h2.sql
+      mode: "always"
+  batch:
+    jdbc:
+      initialize-schema: never
+    job:
+      enabled: false
   datasources:
     target:
-      jdbc-url: jdbc:sqlserver://localhost:1434;databaseName=Linsce_Adq_br;encrypt=true;trustServerCertificate=true
-      username: admin
-      password: 8dqvFN920SErXLWz
+      jdbc-url: jdbc:sqlserver://172.29.144.14:1433;databaseName=Linsce_Adq_br;encrypt=true;trustServerCertificate=true
+      username: L-P3ABB2681
+      password: D3saJ0#an2025
       tabla: comercios_br
       driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-      environment: server
+      maximumPoolSize: 150
+      minimumIdle: 2
+      properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 256
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
     informix:
       origin:
-        jdbc-url: jdbc:informix-sqli://172.29.40.29:1540/catalogo_pos
+        jdbc-url: jdbc:informix-sqli://172.29.40.195:1540/catalogo_pos
         username: bocontrov
-        password: xHJ3%<8uU.=L/svbY
+        password: EGLO2025*
         tabla-origen: comercios_br
         driver-class-name: com.informix.jdbc.IfxDriver
         maximumPoolSize: 150
@@ -28,8 +43,6 @@ spring:
         username: sa
         maximumPoolSize: 150
         minimumIdle: 2
-    batch:
-      jdbc:
-        initialize-schema: never
   params:
     chunk-size: 10000
+    fetch-size: 10000

@@ -22,32 +22,41 @@ public class ItemReader implements org.springframework.batch.item.ItemReader<Lis
 
     private final JdbcTemplate jdbcTemplate;
 
-    @Value("spring.datasources.informix.origin.tabla-origen")
+    @Value("${spring.datasources.informix.origin.tabla-origen}")
     private String tabla;
+
+    @Value("${spring.params.fetch-size}")
+    private Integer fetchSize;
 
     private LocalDate fechaproceso;
     private String acquirer;
+    private int skip = 0;
 
     public ItemReader(@Qualifier("jdbcTemplateInfx") JdbcTemplate jdbcTemplate,
-                         @Value("#{jobParameters['dateProcess']}") LocalDate fechaproceso,
-                         @Value("#{jobParameters['acquirer']}") String acquirer ) {
+                      @Value("#{jobParameters['dateProcess']}") LocalDate fechaproceso,
+                      @Value("#{jobParameters['acquirer']}") String acquirer) {
         this.jdbcTemplate = jdbcTemplate;
         this.fechaproceso = fechaproceso;
-        this.acquirer= acquirer;
+        this.acquirer = acquirer;
     }
 
     @Override
     public List<Map<String, Object>> read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
 
-        try{
+        try {
 
-        String sql = String.format("select cuenta,referencia,monto,bancoAdquirente from %s where fe_proceso = ?  and adquirente = %s",tabla,acquirer);
-        log.info("Query : " + sql);
+            String sql = String.format("select id_sucursal,no_afiliacion,razon_social,calle_no,colonia " +
+                    "from %s where id_adquirente = '%s' " +
+                    " order by rowid SKIP %s LIMIT %s ", tabla, acquirer,skip,fetchSize);
 
-            return this.jdbcTemplate.queryForList(sql,fechaproceso);
+            log.info("Query : " + sql);
+
+            skip = skip + fetchSize;
+
+            return this.jdbcTemplate.queryForList(sql);
 
         } catch (RuntimeException e) {
-            log.error("Error al ejecutar el query de select en la tabla {} con adquirente {}",tabla,acquirer);
+            log.error("Error al ejecutar el query de select en la tabla {} con adquirente {} {}", tabla, acquirer, e);
             System.exit(-1);
         }
 

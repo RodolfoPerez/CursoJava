@@ -3,7 +3,6 @@ package com.example.load.spcc.bo_batch_load_spcc.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,7 +28,7 @@ public class BdConfigSqlServer {
 
     @Bean(name = "target")
     public DataSource targetconfDataSource() {
-        
+
         username = env.getProperty("spring.datasources.target.username");
         password = env.getProperty("spring.datasources.target.password");
 
@@ -55,8 +54,8 @@ public class BdConfigSqlServer {
         dataSourceConfig.setPassword(password);
         dataSourceConfig.setDriverClassName(env.getProperty("spring.datasources.target.driver-class-name"));
         dataSourceConfig.setPoolName(env.getProperty("spring.datasources.target.poolName"));
-        dataSourceConfig.setMaximumPoolSize(env.getProperty("spring.datasources.target.maximumPoolSize", Integer.class));
-        dataSourceConfig.setMinimumIdle(env.getProperty("spring.datasources.target.minimumIdle", Integer.class));
+        dataSourceConfig.setMaximumPoolSize(150);
+        dataSourceConfig.setMinimumIdle(2);
         dataSourceConfig.setConnectionTimeout(300000);
         dataSourceConfig.setIdleTimeout(180000);
         dataSourceConfig.addDataSourceProperty("cachePrepStmts", env.getProperty("spring.datasources.target.properties.cachePrepStmts", Boolean.class));

@@ -8,7 +8,6 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,7 +22,7 @@ public class deleteTasklet implements Tasklet {
 
     private final JdbcTemplate jdbcTemplate;
 
-    @Value("spring.datasources.target.tabla")
+    @Value("${spring.datasources.target.tabla}")
     private String tabla;
 
     private LocalDate fechaproceso;
@@ -31,22 +30,22 @@ public class deleteTasklet implements Tasklet {
 
     public deleteTasklet(@Qualifier("jdbcTemplate") JdbcTemplate jdbcTemplate,
                          @Value("#{jobParameters['dateProcess']}") LocalDate fechaproceso,
-                         @Value("#{jobParameters['acquirer']}") String acquirer ) {
+                         @Value("#{jobParameters['acquirer']}") String acquirer) {
         this.jdbcTemplate = jdbcTemplate;
         this.fechaproceso = fechaproceso;
-        this.acquirer= acquirer;
+        this.acquirer = acquirer;
     }
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         log.info("\n" + FigletFont.convertOneLine("Step 1 Reproceso"));
-        try{
-            String sql = String.format("delete %s where fe_proceso = ? and adquirente = %s",tabla,acquirer);
-            int totalCount = this.jdbcTemplate.update(sql,fechaproceso);
-            log.info("Total de registros eliminados {} de la tabla {} con adquirente {}",totalCount,tabla,acquirer);
+        try {
+            String sql = String.format("delete %s where fe_alta_eglobal = ? and id_adquirente = %s ", tabla, acquirer);
+            int totalCount = this.jdbcTemplate.update(sql, fechaproceso);
+            log.info("Total de registros eliminados {} de la tabla {} con adquirente {}", totalCount, tabla, acquirer);
 
         } catch (RuntimeException e) {
-            log.error("Error al ejecutar el query de eliminacion en la tabla {} con adquirente {}",tabla,acquirer);
+            log.error("Error al ejecutar el query de eliminacion en la tabla {} con adquirente {} {}", tabla, acquirer, e);
             System.exit(-1);
         }
         return RepeatStatus.FINISHED;

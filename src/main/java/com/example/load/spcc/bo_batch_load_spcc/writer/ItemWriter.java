@@ -5,29 +5,36 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @Component("writer")
 @Slf4j
 @StepScope
-public class ItemWriter implements org.springframework.batch.item.ItemWriter<List<Map<String, Object>>>  {
+public class ItemWriter implements org.springframework.batch.item.ItemWriter<List<Map<String, Object>>> {
 
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    @Value("spring.datasources.target.tabla")
+    @Value("${spring.datasources.target.tabla}")
     private String tabla;
 
+    private final LocalDate fechaproceso;
+    private final String acquirer;
+
     public ItemWriter(@Qualifier("jdbcTemplateInsert") NamedParameterJdbcTemplate jdbcTemplate,
-                         @Value("#{jobParameters['dateProcess']}") LocalDate fechaproceso,
-                         @Value("#{jobParameters['acquirer']}") String acquirer ) {
+                      @Value("#{jobParameters['dateProcess']}") LocalDate fechaproceso,
+                      @Value("#{jobParameters['acquirer']}") String acquirer) {
         this.jdbcTemplate = jdbcTemplate;
+        this.fechaproceso = fechaproceso;
+        this.acquirer = acquirer;
     }
 
     @Override
@@ -35,29 +42,33 @@ public class ItemWriter implements org.springframework.batch.item.ItemWriter<Lis
 
         try {
 
-        List<MapSqlParameterSource> batchValues = new ArrayList<>();
+            List<MapSqlParameterSource> batchValues = new ArrayList<>();
 
-        String sql = String.format("INSERT INTO %s (id_adquirente,cuenta,referencia,monto) VALUES (:adquirente,:cuenta,:referencia,:monto)",tabla);
+            String sql = String.format("INSERT INTO %s (id_sucursal,no_afiliacion,razon_social,calle_no,colonia,fe_alta_eglobal,id_adquirente) " +
+                    "VALUES (:id_sucursal,:no_afiliacion,:razon_social,:calle_no,:colonia,:fe_alta_eglobal,:id_adquirente)", tabla);
 
 
-        for(Map<String, Object> item : chunk.getItems().get(0)) {
+            for (Map<String, Object> item : chunk.getItems().get(0)) {
 
-            MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+                MapSqlParameterSource parameterSource = new MapSqlParameterSource();
 
-            parameterSource.addValue("adquirente",item.get("bancoAdquirente"));
-            parameterSource.addValue("cuenta",item.get("cuenta"));
-            parameterSource.addValue("referencia","000000");
-            parameterSource.addValue("cuenta", Objects.equals(item.get("monto").toString(), "1000") ? "1250" : item.get("monto"));
+                parameterSource.addValue("id_sucursal", item.get("id_sucursal"));
+                parameterSource.addValue("no_afiliacion", item.get("no_afiliacion"));
+                parameterSource.addValue("razon_social", item.get("razon_social"));
+                parameterSource.addValue("calle_no", item.get("calle_no"));
+                parameterSource.addValue("colonia", item.get("colonia"));
+                parameterSource.addValue("fe_alta_eglobal", fechaproceso);
+                parameterSource.addValue("id_adquirente", acquirer);
 
-            batchValues.add(parameterSource);
+                batchValues.add(parameterSource);
 
-        }
+            }
 
-        int[] resultado = this.jdbcTemplate.batchUpdate(sql,batchValues.toArray(new MapSqlParameterSource[0]));
+            int[] resultado = this.jdbcTemplate.batchUpdate(sql, batchValues.toArray(new MapSqlParameterSource[0]));
 
-        int totalInsert = Arrays.stream(resultado).sum();
+            int totalInsert = Arrays.stream(resultado).sum();
 
-        log.info("Total Insertados hasta ahora {} en la tabla {}",totalInsert,tabla);
+            log.info("Total Insertados hasta ahora {} en la tabla {}", totalInsert, tabla);
 
         } catch (RuntimeException e) {
             log.error("Error al insertar: {}", e.getMessage());

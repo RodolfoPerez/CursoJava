@@ -28,19 +28,19 @@ public class BdConfigInfx {
 
     @Bean(name = "targetInfx")
     public DataSource targetconfDataSource() {
-        
+
         username = env.getProperty("spring.datasources.informix.origin.username");
         password = env.getProperty("spring.datasources.informix.origin.password");
         return this.createDataSource(username, password);
     }
 
     @Bean(name = "jdbcTemplateInfx")
-    public JdbcTemplate dataSourceJdbcTemplate(@Qualifier("target") DataSource dataSource) {
+    public JdbcTemplate dataSourceJdbcTemplate(@Qualifier("targetInfx") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
 
     @Bean(name = "jdbcTemplateInsertInfx")
-    public NamedParameterJdbcTemplate dataSourceJdbcTemplateInsertr(@Qualifier("target") DataSource dataSource) {
+    public NamedParameterJdbcTemplate dataSourceJdbcTemplateInsertr(@Qualifier("targetInfx") DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
     }
 
@@ -52,8 +52,8 @@ public class BdConfigInfx {
         dataSourceConfig.setPassword(password);
         dataSourceConfig.setDriverClassName(env.getProperty("spring.datasources.informix.origin.driver-class-name"));
         dataSourceConfig.setPoolName(env.getProperty("spring.datasources.informix.origin.poolName"));
-        dataSourceConfig.setMaximumPoolSize(env.getProperty("spring.datasources.informix.origin.maximumPoolSize", Integer.class));
-        dataSourceConfig.setMinimumIdle(env.getProperty("spring.datasources.informix.origin.minimumIdle", Integer.class));
+        dataSourceConfig.setMaximumPoolSize(150);
+        dataSourceConfig.setMinimumIdle(2);
         dataSourceConfig.setConnectionTimeout(300000);
         dataSourceConfig.setIdleTimeout(180000);
         dataSourceConfig.addDataSourceProperty("cachePrepStmts", env.getProperty("spring.datasources.informix.origin.properties.cachePrepStmts", Boolean.class));
