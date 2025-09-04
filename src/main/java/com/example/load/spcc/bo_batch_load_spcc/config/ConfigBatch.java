@@ -1,7 +1,9 @@
 package com.example.load.spcc.bo_batch_load_spcc.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -13,18 +15,39 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Flow;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 
+@Slf4j
 @Configuration
 public class ConfigBatch {
 
+    private final JdbcTemplate jdbcTemplate;
+
     @Value("${spring.params.chunk-size}")
     private Integer chunkSize;
+
+    @Value("${spring.datasources.informix.origin.tabla-origen}")
+    private String tabla;
+
+
+    @Value("${spring.params.fetch-size}")
+    private Integer fetchSize;
+
+
+    public static AtomicInteger pageIndex = new AtomicInteger(0);
+    public static AtomicInteger maxPages = new AtomicInteger(0);
+
+    public ConfigBatch(@Qualifier("jdbcTemplateInfx") JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
 
     @Bean
@@ -66,7 +89,7 @@ public class ConfigBatch {
 
 
     @Bean
-    public TaskExecutor taskExecutor(){
+    public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(64);
         executor.setMaxPoolSize(64);
@@ -76,6 +99,32 @@ public class ConfigBatch {
         return executor;
     }
 
+
+    private Flow[] getFlows(Step step) {
+
+
+        String sql = String.format("select count(*) from %s", tabla);
+        Long totalRows = this.jdbcTemplate.queryForObject(sql, Long.class);
+        Long totalPages = totalRows / this.fetchSize + ((totalRows % this.fetchSize > 0) ? 1 : 0);
+        maxPages.set(totalPages.intValue());
+        log.info("TotalRows {}, TotalPages {}", String.format("%,d", totalRows), totalPages);
+
+        Long totalParts = totalPages / 4 + ((totalRows % 4 > 0) ? 1 : 0);
+
+        log.info("Total parts {}", totalParts);
+
+        Flow[] flows = new Flow[totalParts.intValue()];
+
+        for (int i = 0; i < totalParts; i++) {
+
+            flows[i] = new FlowBuilder<Flow>("Extractionpart " + i)
+                    .from(step)
+                    .end();
+        }
+
+        return flows;
+
+    }
 
     @Bean(name = "extractionRecords")
     public Step extractionsRecords(JobRepository jobRepository,

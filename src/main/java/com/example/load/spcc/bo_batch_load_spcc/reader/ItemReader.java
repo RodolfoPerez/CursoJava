@@ -47,7 +47,7 @@ public class ItemReader implements org.springframework.batch.item.ItemReader<Lis
 
             String sql = String.format("select id_sucursal,no_afiliacion,razon_social,calle_no,colonia " +
                     "from %s where id_adquirente = '%s' " +
-                    " order by rowid SKIP %s LIMIT %s ", tabla, acquirer,skip,fetchSize);
+                    " order by rowid SKIP %s LIMIT %s ", tabla, acquirer, skip, fetchSize);
 
             log.info("Query : " + sql);
 
