@@ -14,11 +14,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component("writer")
 @Slf4j
 @StepScope
-public class ItemWriter implements org.springframework.batch.item.ItemWriter<List<Map<String, Object>>> {
+public class ItemWriterCommerce implements org.springframework.batch.item.ItemWriter<List<Map<String, Object>>> {
 
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -29,9 +30,20 @@ public class ItemWriter implements org.springframework.batch.item.ItemWriter<Lis
     private final LocalDate fechaproceso;
     private final String acquirer;
 
-    public ItemWriter(@Qualifier("jdbcTemplateInsert") NamedParameterJdbcTemplate jdbcTemplate,
-                      @Value("#{jobParameters['dateProcess']}") LocalDate fechaproceso,
-                      @Value("#{jobParameters['acquirer']}") String acquirer) {
+
+    public static int getTotalRecordsInserted() {
+        return totalRecordsInserted.get();
+    }
+
+    public static void setTotalRecordsInserted(int value) {
+        totalRecordsInserted.set(value);
+    }
+
+    private static AtomicInteger totalRecordsInserted = new AtomicInteger(0);
+
+    public ItemWriterCommerce(@Qualifier("jdbcTemplateInsert") NamedParameterJdbcTemplate jdbcTemplate,
+                              @Value("#{jobParameters['dateProcess']}") LocalDate fechaproceso,
+                              @Value("#{jobParameters['acquirer']}") String acquirer) {
         this.jdbcTemplate = jdbcTemplate;
         this.fechaproceso = fechaproceso;
         this.acquirer = acquirer;
@@ -65,10 +77,11 @@ public class ItemWriter implements org.springframework.batch.item.ItemWriter<Lis
             }
 
             int[] resultado = this.jdbcTemplate.batchUpdate(sql, batchValues.toArray(new MapSqlParameterSource[0]));
-
             int totalInsert = Arrays.stream(resultado).sum();
 
-            log.info("Total Insertados hasta ahora {} en la tabla {}", totalInsert, tabla);
+            totalRecordsInserted.addAndGet(totalInsert);
+
+            log.info("Total Insertados hasta ahora {} en la tabla {}", String.format("%,d",totalRecordsInserted.get()), tabla);
 
         } catch (RuntimeException e) {
             log.error("Error al insertar: {}", e.getMessage());

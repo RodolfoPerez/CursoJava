@@ -1,6 +1,7 @@
 package com.example.load.spcc.bo_batch_load_spcc.reader;
 
 
+import com.example.load.spcc.bo_batch_load_spcc.config.ConfigBatch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.NonTransientResourceException;
@@ -18,7 +19,7 @@ import java.util.Map;
 @Component("reader")
 @Slf4j
 @StepScope
-public class ItemReader implements org.springframework.batch.item.ItemReader<List<Map<String, Object>>> {
+public class ItemReaderCommerce implements org.springframework.batch.item.ItemReader<List<Map<String, Object>>> {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -30,11 +31,11 @@ public class ItemReader implements org.springframework.batch.item.ItemReader<Lis
 
     private LocalDate fechaproceso;
     private String acquirer;
-    private int skip = 0;
 
-    public ItemReader(@Qualifier("jdbcTemplateInfx") JdbcTemplate jdbcTemplate,
-                      @Value("#{jobParameters['dateProcess']}") LocalDate fechaproceso,
-                      @Value("#{jobParameters['acquirer']}") String acquirer) {
+
+    public ItemReaderCommerce(@Qualifier("jdbcTemplateInfx") JdbcTemplate jdbcTemplate,
+                              @Value("#{jobParameters['dateProcess']}") LocalDate fechaproceso,
+                              @Value("#{jobParameters['acquirer']}") String acquirer) {
         this.jdbcTemplate = jdbcTemplate;
         this.fechaproceso = fechaproceso;
         this.acquirer = acquirer;
@@ -45,15 +46,27 @@ public class ItemReader implements org.springframework.batch.item.ItemReader<Lis
 
         try {
 
+            int pageTmp = ConfigBatch.getPageIndexAndIncrement();
+            if(pageTmp > ConfigBatch.getMaxPages())
+                return null;
+
+
+            int skip = fetchSize * pageTmp;
+
             String sql = String.format("select id_sucursal,no_afiliacion,razon_social,calle_no,colonia " +
                     "from %s where id_adquirente = '%s' " +
                     " order by rowid SKIP %s LIMIT %s ", tabla, acquirer, skip, fetchSize);
 
-            log.info("Query : " + sql);
+            if(skip == 0)
+            log.info("Query inicial : " + sql);
 
-            skip = skip + fetchSize;
 
-            return this.jdbcTemplate.queryForList(sql);
+            List<Map<String, Object>> listFinded = this.jdbcTemplate.queryForList(sql);
+
+            if(listFinded == null || listFinded.isEmpty())
+                return null;
+
+            return listFinded;
 
         } catch (RuntimeException e) {
             log.error("Error al ejecutar el query de select en la tabla {} con adquirente {} {}", tabla, acquirer, e);

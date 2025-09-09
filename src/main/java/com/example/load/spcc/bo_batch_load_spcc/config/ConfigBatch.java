@@ -1,10 +1,16 @@
 package com.example.load.spcc.bo_batch_load_spcc.config;
 
+import com.example.load.spcc.bo_batch_load_spcc.writer.ItemWriterCommerce;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.builder.JobBuilder;
+
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -14,6 +20,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -21,7 +28,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Flow;
+import org.springframework.batch.core.job.flow.Flow;
+
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -42,8 +50,30 @@ public class ConfigBatch {
     private Integer fetchSize;
 
 
-    public static AtomicInteger pageIndex = new AtomicInteger(0);
-    public static AtomicInteger maxPages = new AtomicInteger(0);
+    public static int getPageIndex() {
+        return pageIndex.get();
+    }
+
+    public static int getPageIndexAndIncrement() {
+        return pageIndex.getAndIncrement();
+    }
+
+    public static void setPageIndex(int value) {
+        pageIndex.set(value);
+    }
+
+    public static int getMaxPages() {
+        return maxPages.get();
+    }
+
+    public static void setMaxPages(int value) {
+        maxPages.set(value);
+    }
+
+    private static AtomicInteger pageIndex = new AtomicInteger(0);
+    private static AtomicInteger maxPages = new AtomicInteger(0);
+
+
 
     public ConfigBatch(@Qualifier("jdbcTemplateInfx") JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -62,8 +92,19 @@ public class ConfigBatch {
     @Bean
     public Job finalExchangeStep2(JobRepository jobRepository,
                                   @Qualifier("extractionRecords") Step extractionRecords) {
+
+        Flow[] flows = this.getFlows(extractionRecords);
+
+        Flow extractionRecordsFlow = new FlowBuilder<Flow>("flowsExtraccionStep2")
+                .split(new SimpleAsyncTaskExecutor())
+                .add(flows)
+                .build();
+
         return new JobBuilder("Step 2", jobRepository)
-                .start(extractionRecords)
+                .incrementer(new RunIdIncrementer())
+                .start(extractionRecordsFlow)
+                .end()
+                .listener(listenerJob)
                 .build();
     }
 
@@ -71,9 +112,24 @@ public class ConfigBatch {
     public Job finalExchangeStepALL(JobRepository jobRepository,
                                     @Qualifier("deleteRecords") Step deleteRecords,
                                     @Qualifier("extractionRecords") Step extractionRecords) {
+
+        Flow[] flows = this.getFlows(extractionRecords);
+
+        Flow extractionRecordsFlow = new FlowBuilder<Flow>("flowsExtraccionALL")
+                .split(new SimpleAsyncTaskExecutor())
+                .add(flows)
+                .build();
+
+        Flow flowDelete = new FlowBuilder<Flow>("deleteAllPreviosRegisters")
+                .from(deleteRecords)
+                .end();
+
         return new JobBuilder("Step all", jobRepository)
-                .start(deleteRecords)
-                .next(extractionRecords)
+                .incrementer(new RunIdIncrementer())
+                .start(flowDelete)
+                .next(extractionRecordsFlow)
+                .end()
+                .listener(listenerJob)
                 .build();
     }
 
@@ -125,6 +181,19 @@ public class ConfigBatch {
         return flows;
 
     }
+
+    private JobExecutionListener listenerJob = new JobExecutionListener() {
+
+        @Override
+        public void beforeJob(JobExecution jobExecution) {
+            ItemWriterCommerce.setTotalRecordsInserted(0);
+        }
+
+        @Override
+        public void afterJob(JobExecution jobExecution) {
+            log.info("Registros insertados en total : {}", String.format("%,d", ItemWriterCommerce.getTotalRecordsInserted()));
+        }
+    };
 
     @Bean(name = "extractionRecords")
     public Step extractionsRecords(JobRepository jobRepository,
