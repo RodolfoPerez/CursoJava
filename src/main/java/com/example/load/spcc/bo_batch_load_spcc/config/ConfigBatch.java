@@ -50,24 +50,12 @@ public class ConfigBatch {
     private Integer fetchSize;
 
 
-    public static int getPageIndex() {
-        return pageIndex.get();
-    }
-
     public static int getPageIndexAndIncrement() {
         return pageIndex.getAndIncrement();
     }
 
-    public static void setPageIndex(int value) {
-        pageIndex.set(value);
-    }
-
     public static int getMaxPages() {
         return maxPages.get();
-    }
-
-    public static void setMaxPages(int value) {
-        maxPages.set(value);
     }
 
     private static AtomicInteger pageIndex = new AtomicInteger(0);

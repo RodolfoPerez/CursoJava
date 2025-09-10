@@ -29,15 +29,12 @@ public class ItemReaderCommerce implements org.springframework.batch.item.ItemRe
     @Value("${spring.params.fetch-size}")
     private Integer fetchSize;
 
-    private LocalDate fechaproceso;
     private String acquirer;
 
 
     public ItemReaderCommerce(@Qualifier("jdbcTemplateInfx") JdbcTemplate jdbcTemplate,
-                              @Value("#{jobParameters['dateProcess']}") LocalDate fechaproceso,
                               @Value("#{jobParameters['acquirer']}") String acquirer) {
         this.jdbcTemplate = jdbcTemplate;
-        this.fechaproceso = fechaproceso;
         this.acquirer = acquirer;
     }
 
