@@ -31,6 +31,7 @@ public class BdConfigInfx {
 
         username = env.getProperty("spring.datasources.informix.origin.username");
         password = env.getProperty("spring.datasources.informix.origin.password");
+        log.info("Conexion exitosa de informix");
         return this.createDataSource(username, password);
     }
 

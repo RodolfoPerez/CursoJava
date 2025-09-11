@@ -146,7 +146,6 @@ public class ConfigBatch {
 
     private Flow[] getFlows(Step step) {
 
-
         String sql = String.format("select count(*) from %s", tabla);
         Long totalRows = this.jdbcTemplate.queryForObject(sql, Long.class);
         Long totalPages = totalRows / this.fetchSize + ((totalRows % this.fetchSize > 0) ? 1 : 0);

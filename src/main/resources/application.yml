@@ -44,5 +44,5 @@ spring:
         maximumPoolSize: 150
         minimumIdle: 2
   params:
-    chunk-size: 10000
-    fetch-size: 10000
+    chunk-size: 10
+    fetch-size: 20
