@@ -81,7 +81,7 @@ public class ItemWriterCommerce implements org.springframework.batch.item.ItemWr
 
             totalRecordsInserted.addAndGet(totalInsert);
 
-            log.info("Total Insertados hasta ahora {} en la tabla {}", String.format("%,d",totalRecordsInserted.get()), tabla);
+            log.info("Total Insertados hasta ahora {} en la tabla {}", String.format("%,d", totalRecordsInserted.get()), tabla);
 
         } catch (RuntimeException e) {
             log.error("Error al insertar: {}", e.getMessage());

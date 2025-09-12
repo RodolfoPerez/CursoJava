@@ -4,7 +4,6 @@ package com.example.load.spcc.bo_batch_load_spcc.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,11 +18,14 @@ import javax.sql.DataSource;
 public class BdConfigInfx {
 
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
 
     String username = "";
     String password = "";
+
+    public BdConfigInfx(Environment env) {
+        this.env = env;
+    }
 
 
     @Bean(name = "targetInfx")

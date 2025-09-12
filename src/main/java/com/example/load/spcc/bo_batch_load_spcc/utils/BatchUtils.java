@@ -11,6 +11,10 @@ import java.util.List;
 @Slf4j
 public class BatchUtils {
 
+    private BatchUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
 
     public static String getArgumentValue(ApplicationArguments args, String name) {
         List<String> values = args.getOptionValues(name);

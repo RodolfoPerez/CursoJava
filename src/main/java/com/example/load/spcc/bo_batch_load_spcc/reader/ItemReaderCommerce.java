@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +43,7 @@ public class ItemReaderCommerce implements org.springframework.batch.item.ItemRe
         try {
 
             int pageTmp = ConfigBatch.getPageIndexAndIncrement();
-            if(pageTmp > ConfigBatch.getMaxPages())
+            if (pageTmp > ConfigBatch.getMaxPages())
                 return null;
 
 
@@ -54,13 +53,14 @@ public class ItemReaderCommerce implements org.springframework.batch.item.ItemRe
                     "from %s where id_adquirente = '%s' " +
                     " order by rowid SKIP %s LIMIT %s ", tabla, acquirer, skip, fetchSize);
 
-            if(skip == 0)
-            log.info("Query inicial : " + sql);
+            if (skip == 0) {
+                log.info("Query inicial : " + sql);
+            }
 
 
             List<Map<String, Object>> listFinded = this.jdbcTemplate.queryForList(sql);
 
-            if(listFinded == null || listFinded.isEmpty())
+            if (listFinded == null || listFinded.isEmpty())
                 return null;
 
             return listFinded;

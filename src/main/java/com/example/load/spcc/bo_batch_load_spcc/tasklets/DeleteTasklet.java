@@ -18,7 +18,7 @@ import java.time.LocalDate;
 @Component("reprocessTasklet")
 @Slf4j
 @StepScope
-public class deleteTasklet implements Tasklet {
+public class DeleteTasklet implements Tasklet {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -28,7 +28,7 @@ public class deleteTasklet implements Tasklet {
     private LocalDate fechaproceso;
     private String acquirer;
 
-    public deleteTasklet(@Qualifier("jdbcTemplate") JdbcTemplate jdbcTemplate,
+    public DeleteTasklet(@Qualifier("jdbcTemplate") JdbcTemplate jdbcTemplate,
                          @Value("#{jobParameters['dateProcess']}") LocalDate fechaproceso,
                          @Value("#{jobParameters['acquirer']}") String acquirer) {
         this.jdbcTemplate = jdbcTemplate;

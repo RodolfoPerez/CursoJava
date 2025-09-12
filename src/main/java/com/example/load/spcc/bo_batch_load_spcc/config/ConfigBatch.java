@@ -1,7 +1,6 @@
 package com.example.load.spcc.bo_batch_load_spcc.config;
 
 import com.example.load.spcc.bo_batch_load_spcc.writer.ItemWriterCommerce;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -9,7 +8,7 @@ import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.builder.JobBuilder;
-
+import org.springframework.batch.core.job.flow.Flow;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -28,8 +27,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 import java.util.Map;
-import org.springframework.batch.core.job.flow.Flow;
-
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -60,7 +57,6 @@ public class ConfigBatch {
 
     private static AtomicInteger pageIndex = new AtomicInteger(0);
     private static AtomicInteger maxPages = new AtomicInteger(0);
-
 
 
     public ConfigBatch(@Qualifier("jdbcTemplateInfx") JdbcTemplate jdbcTemplate) {
